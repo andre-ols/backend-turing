@@ -10,7 +10,7 @@ class OrdersController {
             order: [["id", "DESC"]],
             where: {
             status: {
-                [Op.or]: ["fila", "PREPARO"]
+                [Op.or]: ["FILA", "PREPARO"]
             }
             }
         })
@@ -151,7 +151,6 @@ class OrdersController {
     // Insere um pedido no banco
     async create(request, response) {
         const { cliente_id, observacao, total, status, pagamento, pedidos } = request.body;
-        console.log(cliente_id)
 
         // Salvando o pedido no BD 
         const orders = await Orders.create({
@@ -163,15 +162,15 @@ class OrdersController {
           });
         
         pedidos.map( pedidos => {
-            pedidos.pedido_id = orders.id;
+            pedidos.pedido_id = orders.dataValues.id;
         })
           
         //Salvando o array de detalhes do pedido no BD
         await Details.bulkCreate(pedidos);
 
-        request.io.emit('newOrder', orders);
+        request.io.emit('newOrder', orders.dataValues);
 
-        return response.json(orders);
+        return response.json(orders.dataValues);
 
     }
 

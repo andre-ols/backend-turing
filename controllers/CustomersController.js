@@ -22,22 +22,30 @@ class CustomersController {
     // Insere um cliente no BD
     async create(request, response) {
         
-        await Customers.create({
-            id: request.body.session,
-            nome: request.body.nome,
-            endereco: request.body.endereco
-          });
+        try{
+            await Customers.create({
+                id: request.body.id,
+                nome: request.body.nome,
+                endereco: request.body.endereco
+            });
 
-        return response.json({status: 'sucess'});
+            return response.json({status: 'sucess'});
+        }
+        catch(e){
+            return response.json({ status: 'error' })
+        }
     }
 
     async update(request, response) {
-        await Customers.update({ endereco: request.body.endereco }, {
-            where: {
-              id: request.body.id
-            }
-          });
+        await Customers.update({ nome: request.body.nome, endereco: request.body.endereco }, {
+        where: {
+            id: request.body.id
+        }
+        });
+
         return response.json({status: 'sucess'})
+        
+        
     }
 }
 

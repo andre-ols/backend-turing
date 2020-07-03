@@ -15,6 +15,9 @@ const Orders = sequelize.define("pedidos", {
         onUpdate: 'CASCADE',
         onDelete: 'CASCADE'
     },
+    troco: {
+        type: Sequelize.STRING
+    },
     total: {
         type: Sequelize.FLOAT
     },
