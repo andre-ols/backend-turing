@@ -17,7 +17,7 @@ routes.get("/chart", ordersConstroller.chart);
 
 routes.put("/changestatus/:id/:status", ordersConstroller.updateStatus);
 
-routes.post('/whatsapp', whatsapp);
+routes.post('/whatsapp/:cliente_id', whatsapp);
 
 routes.get("/orders/:id/status", ordersConstroller.status);
 
