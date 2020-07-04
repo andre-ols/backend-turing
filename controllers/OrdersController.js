@@ -1,6 +1,7 @@
 const Relationship = require('../models/Relationship');
 const Orders = Relationship.Orders;
-const Details = Relationship.Details
+const Details = Relationship.Details;
+const Customers = Relationship.Customers;
 const { Op } = require("sequelize");
 
 class OrdersController {
@@ -17,6 +18,28 @@ class OrdersController {
         return response.json(result);
     }
 
+    async status(request, response) {
+        const result = await Customers.findByPk(request.params.id, {
+            attributes: ["nome"],
+            include: [
+            {
+                attributes: ["status"],
+                where: {
+                    status: {
+                        [Op.or]: ["FILA", "PREPARO"]
+                    }
+                },
+                model: Orders,
+                required: true
+            }
+            ]
+        });
+
+        if (result === null) 
+            return response.json({ error: 'Não existe pedido aberto' });
+        else 
+            return response.json(result)
+    }
     // Atualiza o status do pedido
     async updateStatus(request, response) {
         const result = await Orders.update(

@@ -2,6 +2,7 @@ const express = require('express');
 const OrdersConstroller = require('./controllers/OrdersController');
 const DetailsController = require('./controllers/DetailsController');
 const CustomersController = require('./controllers/CustomersController');
+const whatsapp = require("./controllers/whatsapp")
 
 const routes = express.Router();
 const ordersConstroller = new OrdersConstroller();
@@ -15,6 +16,10 @@ routes.get("/summation", ordersConstroller.summation);
 routes.get("/chart", ordersConstroller.chart);
 
 routes.put("/changestatus/:id/:status", ordersConstroller.updateStatus);
+
+routes.post('/whatsapp', whatsapp);
+
+routes.get("/orders/:id/status", ordersConstroller.status);
 
 routes.get("/orders/:id", detailsController.show);
 
