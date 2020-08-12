@@ -1,7 +1,4 @@
-const Relationship = require('../models/Relationship');
-const Orders = Relationship.Orders;
-const Details = Relationship.Details;
-const Customers = Relationship.Customers;
+const { Orders, Customers, Details } = require('../models/Relationship');
 const { Op } = require("sequelize");
 
 class OrdersController {
@@ -20,7 +17,7 @@ class OrdersController {
 
     async status(request, response) {
         const result = await Customers.findByPk(request.params.id, {
-            attributes: ["nome"],
+            attributes: [],
             include: [
             {
                 attributes: ["status"],
@@ -167,17 +164,138 @@ class OrdersController {
 
     // Realiza o somatorio do preço de todos os pedidos
     async summation(request, response) {
-        const result = await Orders.sum('total');
-        return response.json(result)
+        //Convertendo data para o nosso fuso
+        const date = new Date();
+        //Trazendo para o nosso fuso
+        date.setHours(date.getHours() - 3);
+        date.setMinutes(date.getMinutes() - date.getMinutes());
+        date.setSeconds(date.getSeconds() - date.getSeconds());
+
+        if(date.getHours() >= 0 && date.getHours() <= 12) 
+            date.setDate(date.getDate() - 1);
+            
+        date.setHours(12);
+        //Volta pro fuso padrão
+        date.setHours(date.getHours() + 3);
+
+        //Data limite
+        const lastDate = new Date();
+        //Trazendo para o nosso fuso
+        lastDate.setHours(lastDate.getHours() - 3);
+        lastDate.setMinutes(lastDate.getMinutes() - lastDate.getMinutes());
+        lastDate.setSeconds(lastDate.getSeconds() - lastDate.getSeconds());
+
+        if(lastDate.getHours() >= 12) 
+            lastDate.setDate(lastDate.getDate() + 1);
+            
+        lastDate.setHours(12);
+        //Volta pro fuso padrão
+        lastDate.setHours(lastDate.getHours() + 3);
+        
+        const result = await Orders.sum('total', { 
+            where: {
+                status: "FINALIZADO",
+                 createdAt: {
+                    [Op.gt]: date,
+                    [Op.lt]: lastDate
+            }
+            }
+        });
+        return response.json({total: result})
+    }
+
+    async PaymentCard(request, response) {
+        //Convertendo data para o nosso fuso
+        const date = new Date();
+        //Trazendo para o nosso fuso
+        date.setHours(date.getHours() - 3);
+        date.setMinutes(date.getMinutes() - date.getMinutes());
+        date.setSeconds(date.getSeconds() - date.getSeconds());
+
+        if(date.getHours() >= 0 && date.getHours() <= 12) 
+            date.setDate(date.getDate() - 1);
+            
+        date.setHours(12);
+        //Volta pro fuso padrão
+        date.setHours(date.getHours() + 3);
+
+        //Data limite
+        const lastDate = new Date();
+        //Trazendo para o nosso fuso
+        lastDate.setHours(lastDate.getHours() - 3);
+        lastDate.setMinutes(lastDate.getMinutes() - lastDate.getMinutes());
+        lastDate.setSeconds(lastDate.getSeconds() - lastDate.getSeconds());
+
+        if(lastDate.getHours() >= 12) 
+            lastDate.setDate(lastDate.getDate() + 1);
+            
+        lastDate.setHours(12);
+        //Volta pro fuso padrão
+        lastDate.setHours(lastDate.getHours() + 3);
+        
+        const result = await Orders.sum('total', { 
+            where: {
+                status: "FINALIZADO",
+                pagamento: "Cartão",
+                 createdAt: {
+                    [Op.gt]: date,
+                    [Op.lt]: lastDate
+            }
+            }
+        });
+        return response.json({total: result})
+    }
+
+    async PaymentMoney(request, response) {
+        //Data incial
+        const date = new Date();
+        //Trazendo para o nosso fuso
+        date.setHours(date.getHours() - 3);
+        date.setMinutes(date.getMinutes() - date.getMinutes());
+        date.setSeconds(date.getSeconds() - date.getSeconds());
+
+        if(date.getHours() >= 0 && date.getHours() <= 12) 
+            date.setDate(date.getDate() - 1);
+            
+        date.setHours(12);
+        //Volta pro fuso padrão
+        date.setHours(date.getHours() + 3);
+
+        //Data limite
+        const lastDate = new Date();
+        //Trazendo para o nosso fuso
+        lastDate.setHours(lastDate.getHours() - 3);
+        lastDate.setMinutes(lastDate.getMinutes() - lastDate.getMinutes());
+        lastDate.setSeconds(lastDate.getSeconds() - lastDate.getSeconds());
+
+        if(lastDate.getHours() >= 12) 
+            lastDate.setDate(lastDate.getDate() + 1);
+            
+        lastDate.setHours(12);
+        //Volta pro fuso padrão
+        lastDate.setHours(lastDate.getHours() + 3);
+        
+        const result = await Orders.sum('total', { 
+            where: {
+                status: "FINALIZADO",
+                pagamento: "Dinheiro",
+                 createdAt: {
+                    [Op.gt]: date,
+                    [Op.lt]: lastDate
+            }
+            }
+        });
+        return response.json({total: result})
     }
 
     // Insere um pedido no banco
     async create(request, response) {
-        const { cliente_id, observacao, total, status, pagamento, pedidos } = request.body;
+        const { cliente_id, observacao, total, troco, status, pagamento, pedidos } = request.body;
 
         // Salvando o pedido no BD 
         const orders = await Orders.create({
             cliente_id,
+            troco,
             observacao,
             total,
             status,
@@ -191,7 +309,7 @@ class OrdersController {
         //Salvando o array de detalhes do pedido no BD
         await Details.bulkCreate(pedidos);
 
-        request.io.emit('newOrder', orders.dataValues);
+        request.io.emit('newOrder');
 
         return response.json(orders.dataValues);
 

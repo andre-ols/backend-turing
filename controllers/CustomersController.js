@@ -1,4 +1,4 @@
-const Customers = require('../models/Relationship').Customers;
+const { Customers } = require('../models/Relationship');
 
 class CustomersController {
 
